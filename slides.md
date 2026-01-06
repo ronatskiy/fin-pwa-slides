@@ -458,75 +458,9 @@ layout: center
 
 <br>
 
-> Ми обрали **Звичайний CSS**, щоб зосередитися на логіці React та PWA, а не на вивченні нових інструментів стилізації.
+> Ми ми будемо використовувати мікс. За основу візьмемо бібліотеку **Bootstrap** і за необхідності додамо  **Звичайний CSS**. Наша головна мета все ж зосередитися на логіці React та PWA, а не на вивченні стилізації.
 
 
----
-
-# 🎨 Стилізація (CSS)
-
-Замініть код в `index.css` на цей
-
-<div class="h-[400px] overflow-y-auto text-xs">
-
-```css
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: #f3f4f6;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
-}
-
-```
-</div>
-
----
-
-# 🎨 Стилізація (CSS)
-
-CSS — це одяг нашого сайту. Без нього він виглядає як скелет. 
-
-Скопіюйте цей код у `src/App.css`, щоб зробити додаток стильним.
-
-<div class="h-[400px] overflow-y-auto text-xs">
-
-```css
-.container { min-height: 100vh; background: #f3f4f6; display: flex; justify-content: center; padding: 1rem; font-family: sans-serif; }
-.card { width: 100%; max-width: 480px; background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; min-height: 80vh; }
-.title { text-align: center; padding: 1.5rem; color: #1f2937; margin: 0; font-size: 1.5rem; }
-.nav-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-.nav-tab { flex: 1; padding: 1rem; border: none; background: none; cursor: pointer; font-weight: 600; color: #6b7280; }
-.nav-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
-.module-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-.input, .select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; margin-bottom: 0.5rem; box-sizing: border-box; }
-.btn-primary { width: 100%; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
-.result { background: #eff6ff; padding: 1rem; border-radius: 0.5rem; text-align: center; color: #1e40af; }
-.expense-item { display: flex; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f3f4f6; }
-```
-
-</div>
 ---
 
 # 🎨 Стилізація (Bootstap CSS)
@@ -565,6 +499,87 @@ CSS — це одяг нашого сайту. Без нього він вигл
 
 ---
 
+# 🎨 Стилізація (CSS)
+
+Замініть код в `index.css` на цей
+
+<div class="h-[400px] overflow-y-auto text-xs">
+
+```css
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;  padding: 0;  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+html, body, #root { height: 100%; }
+
+#root {  width: 100%;  min-height: 100vh; }
+```
+</div>
+
+---
+
+# 🎨 Стилізація (CSS)
+
+CSS — це одяг нашого сайту. Без нього він виглядає як скелет. 
+
+Скопіюйте цей код у `src/App.css`, щоб зробити додаток стильним.
+
+<div class="h-[400px] overflow-y-auto text-xs">
+
+```css
+.app-viewport { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+.app-card {
+  max-width: 620px;
+  overflow: hidden;
+  background: #fff;
+  margin: 0 auto;
+}
+
+.nav-link {
+  border: none;
+  color: #6b7280;
+  padding: 0.35rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  font-weight: 500;
+  background: transparent;
+  margin-right: 0.1rem;
+
+  &.active {    
+    border: none;
+    border-bottom: 3px solid #0d6efd !important;
+    background: transparent !important;
+  }
+}
+
+.module-wrapper { padding: 1rem; min-height: 512px; }
+```
+
+</div>
+
+
+---
+
 # 🧭 Пульт керування (Навігація)
 
 Додаток без меню — як будинок без дверей. 
@@ -574,28 +589,26 @@ CSS — це одяг нашого сайту. Без нього він вигл
 <div class="h-[340px] overflow-y-auto">
 
 ```jsx
-
 export function Navigation({ activeTab, onTabChange }) {
   const tabs = [
-    { id: 'expenses', label: 'Витрати', icon: '💰' },
-    { id: 'budget', label: 'Бюджет', icon: '📊' },
-    { id: 'goals', label: 'Цілі', icon: '🎯' },
-    { id: 'converter', label: 'Конвертер', icon: '💱' },
-    { id: 'help', label: 'Допомога', icon: '❓' },
+    { id: "expenses", label: "Витрати", icon: "💰" },
+    { id: "budget", label: "Бюджет", icon: "📊" },
+    { id: "goals", label: "Цілі", icon: "🎯" },
+    { id: "converter", label: "Конвертер", icon: "💱" },
+    { id: "help", label: "Допомога", icon: "❓" },
   ];
 
   return (
-    <ul className="nav nav-tabs flex-nowrap">
+    <ul className="nav nav-tabs bg-light d-flex flex-no-wrap gap-0 border-bottom px-3 pt-2">
       {tabs.map((tab) => (
-        <li key={tab.id} className="nav-item">
+        <li key={tab.id} className="nav-item me-1">
           <button
+            type="button"
             onClick={() => onTabChange(tab.id)}
-            className={`nav-link ${activeTab === tab.id ? 'active' : ''}`}
-            aria-current={activeTab === tab.id ? 'true' : undefined}
-            title={tab.label}
+            className={`nav-link ${activeTab === tab.id ? "active" : ""}`}
           >
-            {tab.icon}
-            <span className="ms-2">{tab.label}</span>
+            <span className="tab-icon">{tab.icon}</span>
+            <span className="tab-label ms-1">{tab.label}</span>
           </button>
         </li>
       ))}
@@ -613,7 +626,6 @@ export function Navigation({ activeTab, onTabChange }) {
 
 Підключимо кнопки перемикання між екранами у `src/App.jsx`.
 
-
 <div class="h-[340px] overflow-y-auto">
 
 ```jsx
@@ -630,20 +642,22 @@ function App() {
   const [activeTab, setActiveTab] = useState("expenses");
 
   return (
-    <div className="container d-flex align-items-center justify-content-center min-vh-100">
-      <div className="card app-card">
-        <div className="header">
-          <h1 className="title">💡 Фінансова Грамотність</h1>
+    <div className="container-fluid app-viewport">
+      <div className="card app-card border-0 rounded-2 shadow-sm">
+        <div className="card-header text-center bg-transparent border-0">
+          <h1 className="title py-3 fs-3 fw-bold">💡 Фінансова Грамотність</h1>
         </div>
 
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="card-body p-0">
+          <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <div className="module-wrapper">
-          {/* {activeTab === "expenses" && <ExpenseTracker />}
-          {activeTab === "budget" && <BudgetPlanner />}
-          {activeTab === "goals" && <SavingsGoals />}
-          {activeTab === "converter" && <Converter />}
-          {activeTab === "help" && <InstallInfo />} */}
+          <div className="module-wrapper">
+            {/* {activeTab === "expenses" && <ExpenseTracker />}
+            {activeTab === "budget" && <BudgetPlanner />}
+            {activeTab === "goals" && <SavingsGoals />}
+            {activeTab === "converter" && <Converter />}
+            {activeTab === "help" && <InstallInfo />} */}
+          </div>
         </div>
       </div>
     </div>
@@ -651,9 +665,19 @@ function App() {
 }
 
 export default App;
-
 ```
 </div>
+
+---
+
+# 🧮 Наш базовий шаблон
+
+
+<div class="flex justify-center items-center ">
+  <img src="/AppStart.png" class="rounded shadow-lg object-cover h-96" />
+
+</div>
+
 
 ---
 layout: center
