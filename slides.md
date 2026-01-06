@@ -546,33 +546,19 @@ CSS — це одяг нашого сайту. Без нього він вигл
 
 ```css
 .app-viewport { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.module-title {  font-size: 1.6rem;  font-weight: 700;  margin-top: 0.25rem;  margin-bottom: 1rem;  padding-bottom: 0.75rem;  border-bottom: 1px solid #e5e7eb; }
+.app-card {  max-width: 620px;  overflow: hidden;  background: #fff;  margin: 0 auto; }
 
-.app-card {
-  max-width: 620px;
-  overflow: hidden;
-  background: #fff;
-  margin: 0 auto;
+.nav-link {  border: none;  color: #6b7280;  padding: 0.35rem 0.5rem;  display: inline-flex;  align-items: center;  gap: .15rem;  font-weight: 500;  background: transparent;  margin-right: 0.1rem; }
+.nav-link.active { border: none; border-bottom: 3px solid #0d6efd !important; background: transparent !important; }
+
+.module-wrapper { padding: 1rem 1.5rem; min-height: 512px; }
+
+@media (max-width: 560px) {
+  .module-title { font-size: 1.35rem; }
 }
 
-.nav-link {
-  border: none;
-  color: #6b7280;
-  padding: 0.35rem 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  gap: .15rem;
-  font-weight: 500;
-  background: transparent;
-  margin-right: 0.1rem;
-
-  &.active {    
-    border: none;
-    border-bottom: 3px solid #0d6efd !important;
-    background: transparent !important;
-  }
-}
-
-.module-wrapper { padding: 1rem; min-height: 512px; }
+.form-label { font-weight: 600; font-size: 0.85rem; }
 ```
 
 </div>
@@ -592,9 +578,9 @@ CSS — це одяг нашого сайту. Без нього він вигл
 export function Navigation({ activeTab, onTabChange }) {
   const tabs = [
     { id: "expenses", label: "Витрати", icon: "💰" },
-    { id: "budget", label: "Бюджет", icon: "📊" },
     { id: "goals", label: "Цілі", icon: "🎯" },
     { id: "converter", label: "Конвертер", icon: "💱" },
+    { id: "budget", label: "Бюджет", icon: "📊" },
     { id: "help", label: "Допомога", icon: "❓" },
   ];
 
@@ -652,11 +638,11 @@ function App() {
           <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="module-wrapper">
-            {/* {activeTab === "expenses" && <ExpenseTracker />}
-            {activeTab === "budget" && <BudgetPlanner />}
-            {activeTab === "goals" && <SavingsGoals />}
-            {activeTab === "converter" && <Converter />}
-            {activeTab === "help" && <InstallInfo />} */}
+            {/* {activeTab === "expenses" && <ExpenseTracker />} */}
+            {/* {activeTab === "budget" && <BudgetPlanner />} */}
+            {/* {activeTab === "goals" && <SavingsGoals />} */}
+            {/* {activeTab === "converter" && <Converter />} */}
+            {/* {activeTab === "help" && <InstallInfo />} */}
           </div>
         </div>
       </div>
@@ -665,17 +651,18 @@ function App() {
 }
 
 export default App;
+
 ```
 </div>
 
 ---
 
-# 🧮 Наш базовий шаблон
+# Наш базовий шаблон 
 
+На даному етапі ми вже маємо повноцінний застосунок і лишається лиш наповнити його контентом
 
 <div class="flex justify-center items-center ">
   <img src="/AppStart.png" class="rounded shadow-lg object-cover h-96" />
-
 </div>
 
 
@@ -698,9 +685,7 @@ layout: center
 <div class="h-[340px] overflow-y-auto">
 
 ```js
-
 export const STORAGE_KEYS = {
-  RATES: 'currency_rates_cache',
   EXPENSES: 'expenses_log',
   BUDGET: 'budget_limits',
   GOALS: 'savings_goals',
@@ -723,29 +708,59 @@ export function saveToStorage(key, data) {
     console.error(`Error saving to storage: ${key}`, error);
   }
 }
+```
 
-export function clearStorage(key) {
-  try {
-    localStorage.removeItem(key);
-  } catch (error) {
-    console.error(`Error clearing storage: ${key}`, error);
-  }
+</div>
+
+---
+
+# Допоміжні функції
+
+
+Ми створимо файл `src/utils/utils.js`.
+
+<div class="h-[340px] overflow-y-auto">
+
+```js
+export const CATEGORIES = {
+  Food: '💵 Їжа',
+  Transport: '🚗 Транспорт',
+  Entertainment: '🎮 Розваги',
+  Other: '📌 Інше',
+};
+
+export const DEFAULT_LIMITS = {
+  Food: 3000,
+  Transport: 1500,
+  Entertainment: 2000,
+  Other: 1000,
+};
+
+export function calculateCategoryTotals(expenses) {
+  return expenses.reduce((acc, exp) => {
+    acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+    return acc;
+  }, {});
 }
 
-export function getAllStorage() {
-  const data = {};
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key) {
-        const value = localStorage.getItem(key);
-        data[key] = value ? JSON.parse(value) : null;
-      }
-    }
-  } catch (error) {
-    console.error('Error reading all storage:', error);
-  }
-  return data;
+export function calculateTotalExpenses(items) {
+  return items.reduce((sum, it) => sum + it.amount, 0);
+}
+
+
+export function calculateRemainingGoal(target, saved) {
+  return Math.max(0, target - saved);
+}
+
+
+export function convert(amount, from, to, rates) {
+  if (!rates || !rates[from] || !rates[to] || amount == null || isNaN(amount)) return null;
+  return amount * (rates[to] / rates[from]);
+}
+
+export function formatDate(dateStr, options = { day: 'numeric', month: 'long', year: 'numeric' }) {
+  const date = dateStr ? new Date(dateStr + 'T00:00:00') : new Date();
+  return new Intl.DateTimeFormat('uk-UA', options).format(date);
 }
 
 ```
@@ -802,35 +817,22 @@ export function getAllStorage() {
 
 # 🧮 Модуль: Витрати
 
-#### Створимо для цього модуль `src/components/modules/ExpenseTracker.tsx`.
+#### Створимо для цього модуль `src/components/modules/ExpenseTracker.jsx`.
 
 
 
 <div class="h-[360px] overflow-y-auto mt-4">
 
 ```jsx
-
 import { useState, useEffect } from 'react';
-import { getFromStorage, saveToStorage, STORAGE_KEYS } from '../../utils/storage';
+import {
+  getFromStorage,
+  saveToStorage,
+  STORAGE_KEYS,
+} from '../../utils/storage';
+import { calculateTotalExpenses, calculateCategoryTotals, formatDate, CATEGORIES } from '../../utils/utils';
 
-export const CATEGORIES = {
-  'Food': '💵 Їжа',
-  'Transport': '🚗 Транспорт',
-  'Entertainment': '🎮 Розваги',
-  'Other': '📌 Інше',
-};
-
-export type Category = keyof typeof CATEGORIES;
-
-interface Expense {
-  id: string;
-  date: string;
-  amount: number;
-  category: Category;
-  description?: string;
-}
-
-const emptyExpense: Partial<Expense> = {
+const emptyExpense = {
   date: getDate(),
   amount: 0,
   category: 'Food',
@@ -838,7 +840,7 @@ const emptyExpense: Partial<Expense> = {
 };
 
 export function ExpenseTracker() {
-  const [expenses, setExpenses] = useState<Expense[]>(() => getFromStorage<Expense[]>(STORAGE_KEYS.EXPENSES, []));
+  const [expenses, setExpenses] = useState(() => getFromStorage(STORAGE_KEYS.EXPENSES, []));
 
   // Збереження витрат до Storage при їх зміні
   useEffect(() => {
@@ -846,35 +848,39 @@ export function ExpenseTracker() {
   }, [expenses]);
 
   // Видалення витрати
-  const handleDeleteExpense = (id: string) => {
+  const handleDeleteExpense = (id) => {
     if (confirm('Ви впевнені, що хочете видалити цю витрату?')) {
-      setExpenses(expenses.filter(exp => exp.id !== id));
+      setExpenses(expenses.filter((exp) => exp.id !== id));
     }
   };
 
   return (
     <div className="module-container expense-tracker">
-      <h2 className="module-title">📋 МоЇ витрати</h2>
+      <h2 className="module-title">📋 Мої витрати</h2>
 
       {/* Форма додавання витрати */}
-      <ExpenseForm onAdd={(payload) => {
-        const amount = Number(payload.amount) || 0;
-        if (amount <= 0) {
-          alert('Введіть коректну суму');
-          return false;
-        }
+      <div className="p-3 border rounded bg-body-tertiary">
+        <ExpenseForm
+          onAdd={(payload) => {
+            const amount = Number(payload.amount) || 0;
+            if (amount <= 0) {
+              alert('Введіть коректну суму');
+              return false;
+            }
 
-        const expense: Expense = {
-          id: Date.now().toString(),
-          date: payload.date || getDate(),
-          amount,
-          category: (payload.category as Category) || 'Food',
-          description: payload.description,
-        };
+            const expense = {
+              id: Date.now().toString(),
+              date: payload.date || getDate(),
+              amount,
+              category: payload.category || 'Food',
+              description: payload.description,
+            };
 
-        setExpenses(prev => [...prev, expense]);
-        return true;
-      }} />
+            setExpenses((prev) => [...prev, expense]);
+            return true;
+          }}
+        />
+      </div>
 
       {/* Підсумок по категоріях */}
       <ExpenseSummary expenses={expenses} onDelete={handleDeleteExpense} />
@@ -882,23 +888,10 @@ export function ExpenseTracker() {
   );
 }
 
-// Форматування дати для відображення
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr + 'T00:00:00');
-  return new Intl.DateTimeFormat('uk-UA', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
-}
-
 function getDate() {
   return new Date().toISOString().split('T')[0];
 }
 
-export function calculateTotal(items: Expense[]) {
-  return items.reduce((sum, exp) => sum + exp.amount, 0);
-}
 ```
 
 </div>
@@ -914,34 +907,29 @@ export function calculateTotal(items: Expense[]) {
 <div class="h-[360px] overflow-y-auto mt-4">
 
 ```jsx
-/**
- * ExpenseForm — простий компонент форми для додавання нової витрати.
- * Локальний стан форми тримається всередині компонента;
- * при сабміті викликається onAdd(payload), і якщо onAdd повертає true — форма очищається.
- */
-export function ExpenseForm({ onAdd }: { onAdd: (payload: Partial<Expense>) => boolean }) {
-  const [formValue, setFormValue] = useState<Partial<Expense>>(emptyExpense);
+function ExpenseForm({ onAdd }) {
+  const [formValue, setFormValue] = useState(emptyExpense);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const ok = onAdd(formValue);
     if (ok) setFormValue(emptyExpense);
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="expense-form">
-      <div className="form-row">
-        <div className="form-group">
+      <div className="row g-3">
+        <div className="col-md-6">
           <label className="form-label">Дата</label>
           <input
             type="date"
             value={formValue.date}
             onChange={(e) => setFormValue({ ...formValue, date: e.target.value })}
-            className="form-input"
+            className="form-control"
           />
         </div>
 
-        <div className="form-group">
+        <div className="col-md-6">
           <label className="form-label">Сума (грн)</label>
           <input
             type="number"
@@ -950,43 +938,41 @@ export function ExpenseForm({ onAdd }: { onAdd: (payload: Partial<Expense>) => b
             value={formValue.amount || ''}
             onChange={(e) => setFormValue({ ...formValue, amount: parseFloat(e.target.value) || 0 })}
             placeholder="0"
-            className="form-input"
+            className="form-control"
           />
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
+      <div className="row g-3 mt-1">
+        <div className="col-md-6">
           <label className="form-label">Категорія</label>
           <select
             value={formValue.category}
-            onChange={(e) => setFormValue({ ...formValue, category: e.target.value as Expense['category'] })}
+            onChange={(e) => setFormValue({ ...formValue, category: e.target.value })}
             className="form-select"
           >
             {Object.entries(CATEGORIES).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
+              <option key={key} value={key}>{label}</option>
             ))}
           </select>
         </div>
 
-        <div className="form-group">
+        <div className="col-md-6">
           <label className="form-label">Опис (опц.)</label>
           <input
             type="text"
             value={formValue.description || ''}
             onChange={(e) => setFormValue({ ...formValue, description: e.target.value })}
             placeholder="Деталі..."
-            className="form-input"
+            className="form-control"
             maxLength={50}
           />
         </div>
       </div>
 
-      <button type="submit" className="btn btn-primary btn-block">
-        + Додати витрату
-      </button>
+      <div className="mt-3">
+        <button type="submit" className="btn btn-primary w-100">+ Додати витрату</button>
+      </div>
     </form>
   );
 }
@@ -1000,61 +986,51 @@ export function ExpenseForm({ onAdd }: { onAdd: (payload: Partial<Expense>) => b
 #### Тепер відображаємо всі введені дані `ExpenseSummary`.
 
 
-
 <div class="h-[360px] overflow-y-auto mt-4">
 
 ```jsx
 
-/**
- * ExpenseSummary — відображає підсумки: суми по категоріях, загальну суму та детальний список витрат.
- * Props:
- *  - `expenses`: масив витрат
- *  - `onDelete(id)`: callback для видалення витрати
- */
-export function ExpenseSummary({ expenses, onDelete }: { expenses: Expense[]; onDelete: (id: string) => void }) {
-  const categoryTotals = expenses.reduce((acc, exp) => {
-    acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const totalAmount = calculateTotal(expenses);
+function ExpenseSummary({ expenses, onDelete }) {
+  const categoryTotals = calculateCategoryTotals(expenses)
+  const totalAmount = calculateTotalExpenses(expenses);
 
   return (
-    <div className="expense-summary">
-      <h3 className="summary-title">Загальні витрати по категоріям</h3>
+    <div className="mt-4">
+      <h3 className="fs-5 fw-semibold mb-3 pb-2 border-bottom">Загальні витрати по категоріям</h3>
 
       {expenses.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <p className="empty-state-text">Витрат не знайдено</p>
+        <div className="d-flex flex-column align-items-center py-4">
+          <div className="fs-2 mb-2">📭</div>
+          <p className="text-muted mb-0">Витрат не знайдено</p>
         </div>
       ) : (
         <>
-          <div className="category-breakdown">
+          <ul className="list-group mb-2">
             {Object.entries(CATEGORIES).map(([category, label]) => {
               const total = categoryTotals[category] || 0;
               if (total === 0) return null;
 
               return (
-                <div key={category} className="category-item">
-                  <div className="category-header">
-                    <span className="category-name">{label}</span>
-                    <span className="category-amount">{total.toFixed(2)} грн</span>
-                  </div>
-                </div>
+                <li key={category} className="list-group-item d-flex justify-content-between align-items-center py-2">
+                  <span>
+                    {label}
+                  </span>
+                  <span className="text-muted">{total.toFixed(2)} грн</span>
+                </li>
               );
             })}
+          </ul>
+
+          <div className="d-flex justify-content-between align-items-center pt-2 border-top">
+            <div className="fw-semibold">Всього:</div>
+            <div className="fw-bold">{totalAmount.toFixed(2)} грн</div>
           </div>
 
-          <div className="total-row">
-            <span>Всього:</span>
-            <span className="total-amount">{totalAmount.toFixed(2)} грн</span>
-          </div>
+          <div className="expenses-list mt-5">
+            <h3 className="fs-5 fw-semibold mb-3 pb-2 border-bottom">Деталі витрат</h3>
 
-          <div className="expenses-list">
-            <h4 className="list-title">Деталі витрат</h4>
-            <div className="table-container">
-              <table className="expenses-table">
+            <div>
+              <table className="table table-sm table-striped table-hover">
                 <thead>
                   <tr>
                     <th>Дата</th>
@@ -1066,15 +1042,14 @@ export function ExpenseSummary({ expenses, onDelete }: { expenses: Expense[]; on
                 </thead>
                 <tbody>
                   {expenses
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((expense) => (
                       <tr key={expense.id}>
                         <td>{formatDate(expense.date)}</td>
                         <td>{CATEGORIES[expense.category]}</td>
-                        <td className="amount-cell">{expense.amount.toFixed(2)} грн</td>
-                        <td className="description-cell">{expense.description || '—'}</td>
+                        <td>{expense.amount.toFixed(2)} грн</td>
+                        <td>{expense.description || '—'}</td>
                         <td className="action-cell">
-                          <button onClick={() => onDelete(expense.id)} className="btn-delete" title="Видалити">✕</button>
+                          <button onClick={() => onDelete(expense.id)} className="btn btn-sm btn-outline-danger" title="Видалити">✕</button>
                         </td>
                       </tr>
                     ))}
@@ -1091,86 +1066,13 @@ export function ExpenseSummary({ expenses, onDelete }: { expenses: Expense[]; on
 
 </div>
 
----
-
-# 📊 Модуль: Бюджет
-
-Як не витратити зайвого?
-
-<div class="grid grid-cols-2 gap-2 mt-4 justify-center">
-  <img src="/image5.png" class="rounded shadow-lg object-cover h-96" />
-  <img src="/image6.png" class="rounded shadow-lg object-cover h-96" />
-</div>
 
 ---
-
-# 📊 Модуль: Бюджет
-
-Як не витратити зайвого?
-
-<div class="grid grid-cols-2 gap-4 mt-4">
-
-<div class="bg-gray-50 p-6 rounded-lg">
-
-$$ L = \sum_{k=1}^{n} l_k $$
-
-$$ R = L - S $$
-
-<p class="text-sm text-gray-600 mt-4">
-  (де <i>L</i> — загальний бюджет (сума лімітів <i>l<sub>k</sub></i>), <i>S</i> — сума витрат, <i>R</i> — залишок)
-</p>
-
-</div>
-
-<div class="grid grid-cols-1 gap-4">
-  <div class="p-4 border rounded border-green-500 bg-green-50">
-    ✅ Якщо <i>S</i> < <i>L</i>
-    <div class="text-sm text-gray-600 mt-1">Витрати в межах бюджету</div>
-  </div>
-  <div class="p-4 border rounded border-red-500 bg-red-50">
-    ⚠️ Якщо <i>S</i> > <i>L</i>
-    <div class="text-sm text-gray-600 mt-1">Перевитрата бюджету</div>
-  </div>
-</div>
-
-</div>
-
+layout: center
 ---
 
-# 📊 Модуль: Бюджет
+# Ми гарно просуваємось до нашої мети 🎯
 
-Створимо `src/components/modules/BudgetPlanner.tsx`. Це допоможе не витратити все за один день.
-
-<div class="h-[340px] overflow-y-auto">
-
-```tsx
-import { useState } from 'react';
-
-export function BudgetPlanner() {
-  const [budget, setBudget] = useState(10000);
-  const [spent, setSpent] = useState(0);
-
-  return (
-    <div className="module-container">
-      <h2>📉 Планувальник Бюджету</h2>
-      <div className="card">
-        <h3>Мій Бюджет: {budget} грн</h3>
-        <input 
-          type="range" 
-          min="0" 
-          max={budget} 
-          value={spent} 
-          onChange={e => setSpent(parseInt(e.target.value))}
-          style={{width: '100%'}}
-        />
-        <p>Витрачено: {spent} грн ({Math.round(spent/budget*100)}%)</p>
-      </div>
-    </div>
-  );
-}
-```
-
-</div>
 
 
 
@@ -1361,6 +1263,89 @@ export function Converter() {
 ```
 
 </div>
+
+---
+
+# 📊 Модуль: Бюджет
+
+Як не витратити зайвого?
+
+<div class="grid grid-cols-2 gap-2 mt-4 justify-center">
+  <img src="/image5.png" class="rounded shadow-lg object-cover h-96" />
+  <img src="/image6.png" class="rounded shadow-lg object-cover h-96" />
+</div>
+
+---
+
+# 📊 Модуль: Бюджет
+
+Як не витратити зайвого?
+
+<div class="grid grid-cols-2 gap-4 mt-4">
+
+<div class="bg-gray-50 p-6 rounded-lg">
+
+$$ L = \sum_{k=1}^{n} l_k $$
+
+$$ R = L - S $$
+
+<p class="text-sm text-gray-600 mt-4">
+  (де <i>L</i> — загальний бюджет (сума лімітів <i>l<sub>k</sub></i>), <i>S</i> — сума витрат, <i>R</i> — залишок)
+</p>
+
+</div>
+
+<div class="grid grid-cols-1 gap-4">
+  <div class="p-4 border rounded border-green-500 bg-green-50">
+    ✅ Якщо <i>S</i> < <i>L</i>
+    <div class="text-sm text-gray-600 mt-1">Витрати в межах бюджету</div>
+  </div>
+  <div class="p-4 border rounded border-red-500 bg-red-50">
+    ⚠️ Якщо <i>S</i> > <i>L</i>
+    <div class="text-sm text-gray-600 mt-1">Перевитрата бюджету</div>
+  </div>
+</div>
+
+</div>
+
+---
+
+# 📊 Модуль: Бюджет
+
+Створимо `src/components/modules/BudgetPlanner.tsx`. Це допоможе не витратити все за один день.
+
+<div class="h-[340px] overflow-y-auto">
+
+```tsx
+import { useState } from 'react';
+
+export function BudgetPlanner() {
+  const [budget, setBudget] = useState(10000);
+  const [spent, setSpent] = useState(0);
+
+  return (
+    <div className="module-container">
+      <h2>📉 Планувальник Бюджету</h2>
+      <div className="card">
+        <h3>Мій Бюджет: {budget} грн</h3>
+        <input 
+          type="range" 
+          min="0" 
+          max={budget} 
+          value={spent} 
+          onChange={e => setSpent(parseInt(e.target.value))}
+          style={{width: '100%'}}
+        />
+        <p>Витрачено: {spent} грн ({Math.round(spent/budget*100)}%)</p>
+      </div>
+    </div>
+  );
+}
+```
+
+</div>
+
+
 
 ---
 
