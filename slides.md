@@ -267,6 +267,40 @@ layout: center
 </div>
 
 ---
+
+# 🔧 Підготовка середовища
+
+Для роботи з сучасними інструментами (Vite, React) нам потрібен Node.js.
+
+<div class="grid grid-cols-2 gap-8 mt-8">
+
+<div>
+
+### 🟢 Node.js (Рекомендовано)
+
+Це "двигун", який дозволяє запускати JavaScript поза браузером.
+
+1. Завантажте **LTS версію** з [nodejs.org](https://nodejs.org/).
+2. Встановіть як звичайну програму.
+3. Перевірте в терміналі: `node -v`
+
+</div>
+
+<div>
+
+### ☁️ CodeSandbox (Альтернатива)
+
+Якщо ви не можете встановлювати програми на цей комп'ютер (наприклад, у школі):
+
+- Працює прямо в браузері.
+- Нічого не треба встановлювати.
+- Перейдіть на [codesandbox.io](https://codesandbox.io/) та оберіть шаблон **React**.
+
+</div>
+
+</div>
+
+---
 transition: fade
 ---
 
@@ -426,32 +460,6 @@ layout: center
 
 > Ми обрали **Звичайний CSS**, щоб зосередитися на логіці React та PWA, а не на вивченні нових інструментів стилізації.
 
----
-
-# 🎨 Стилізація (CSS)
-
-CSS — це одяг нашого сайту. Без нього він виглядає як скелет. 
-
-Скопіюйте цей код у `src/App.css`, щоб зробити додаток стильним.
-
-<div class="h-[400px] overflow-y-auto text-xs">
-
-```css
-.container { min-height: 100vh; background: #f3f4f6; display: flex; justify-content: center; padding: 1rem; font-family: sans-serif; }
-.card { width: 100%; max-width: 480px; background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; min-height: 80vh; }
-.title { text-align: center; padding: 1.5rem; color: #1f2937; margin: 0; font-size: 1.5rem; }
-.nav-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-.nav-tab { flex: 1; padding: 1rem; border: none; background: none; cursor: pointer; font-weight: 600; color: #6b7280; }
-.nav-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
-.module-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-.input, .select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; margin-bottom: 0.5rem; box-sizing: border-box; }
-.btn-primary { width: 100%; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
-.result { background: #eff6ff; padding: 1rem; border-radius: 0.5rem; text-align: center; color: #1e40af; }
-.expense-item { display: flex; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f3f4f6; }
-```
-
-</div>
-
 
 ---
 
@@ -492,6 +500,67 @@ body {
 }
 
 ```
+</div>
+
+---
+
+# 🎨 Стилізація (CSS)
+
+CSS — це одяг нашого сайту. Без нього він виглядає як скелет. 
+
+Скопіюйте цей код у `src/App.css`, щоб зробити додаток стильним.
+
+<div class="h-[400px] overflow-y-auto text-xs">
+
+```css
+.container { min-height: 100vh; background: #f3f4f6; display: flex; justify-content: center; padding: 1rem; font-family: sans-serif; }
+.card { width: 100%; max-width: 480px; background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; min-height: 80vh; }
+.title { text-align: center; padding: 1.5rem; color: #1f2937; margin: 0; font-size: 1.5rem; }
+.nav-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+.nav-tab { flex: 1; padding: 1rem; border: none; background: none; cursor: pointer; font-weight: 600; color: #6b7280; }
+.nav-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+.module-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.input, .select { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; margin-bottom: 0.5rem; box-sizing: border-box; }
+.btn-primary { width: 100%; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+.result { background: #eff6ff; padding: 1rem; border-radius: 0.5rem; text-align: center; color: #1e40af; }
+.expense-item { display: flex; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f3f4f6; }
+```
+
+</div>
+---
+
+# 🎨 Стилізація (Bootstap CSS)
+
+CSS — це одяг нашого сайту. Без нього він виглядає як скелет. 
+
+Скопіюйте цей код у `src/index.html`, щоб зробити додаток стильним.
+
+<div class="h-[400px] overflow-y-auto text-xs">
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>my-pwa-converter</title>
+    <!-- Bootstrap CSS (CDN) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Bootstrap Bundle (includes Popper) - CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
+```
+
 </div>
 
 ---
@@ -537,6 +606,62 @@ export function Navigation({ activeTab, onTabChange }) {
 ```
 
 </div>
+
+---
+
+# Підключення навігації
+
+Підключимо кнопки перемикання між екранами у `src/App.jsx`.
+
+
+<div class="h-[340px] overflow-y-auto">
+
+```jsx
+import { useState } from "react";
+import "./App.css";
+import { Navigation } from "./components/Navigation";
+// import { Converter } from "./components/modules/Converter";
+// import { ExpenseTracker } from "./components/modules/ExpenseTracker";
+// import { BudgetPlanner } from "./components/modules/BudgetPlanner";
+// import { SavingsGoals } from "./components/modules/SavingsGoals";
+// import { InstallInfo } from "./components/modules/InstallInfo";
+
+function App() {
+  const [activeTab, setActiveTab] = useState("expenses");
+
+  return (
+    <div className="container d-flex align-items-center justify-content-center min-vh-100">
+      <div className="card app-card">
+        <div className="header">
+          <h1 className="title">💡 Фінансова Грамотність</h1>
+        </div>
+
+        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+        <div className="module-wrapper">
+          {/* {activeTab === "expenses" && <ExpenseTracker />}
+          {activeTab === "budget" && <BudgetPlanner />}
+          {activeTab === "goals" && <SavingsGoals />}
+          {activeTab === "converter" && <Converter />}
+          {activeTab === "help" && <InstallInfo />} */}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+```
+</div>
+
+---
+layout: center
+---
+
+# Переходимо до реалізації модулей. 
+
+Сторінок нашого Веб-додатку
 
 ---
 
@@ -602,14 +727,6 @@ export function getAllStorage() {
 ```
 
 </div>
-
----
-layout: center
----
-
-# Переходимо до реалізації модулей. 
-
-Сторінок нашого Веб-додатку
 
 ---
 
