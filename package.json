@@ -1,0 +1,15 @@
+{
+  "name": "pwa-converter-presentation",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "slidev",
+    "build": "slidev build",
+    "export": "slidev export",
+    "tutorial": "slidev tutorial.md --open",
+    "start": "slidev -- --open"
+  },
+  "devDependencies": {
+    "@slidev/types": "^52.11.1"
+  }
+}
