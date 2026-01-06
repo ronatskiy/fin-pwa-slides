@@ -10,6 +10,8 @@
     "start": "slidev -- --open"
   },
   "devDependencies": {
+    "@slidev/cli": "^52.11.1",
+    "@slidev/theme-default": "^0.25.0",
     "@slidev/types": "^52.11.1"
   }
 }
