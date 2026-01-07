@@ -1972,6 +1972,8 @@ layout: center
 
 # Ми впорались 🎉
 
+https://stemcamp-2026.vercel.app/
+
 
 ---
 
