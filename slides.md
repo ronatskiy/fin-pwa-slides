@@ -1094,17 +1094,8 @@ layout: center
 
 Як досягти мрії?
 
-<div class="grid grid-cols-2 gap-4 mt-4">
+<div class="grid gap-4 mt-4">
 
-<div class="bg-purple-50 p-4 rounded-lg">
-  <h3 class="font-bold">Прогрес</h3>
-
-  $$ P = \left( \frac{S}{T} \right) \times 100 $$
-
-  <p class="text-sm text-gray-600 mt-2">
-    (де <i>P</i> — прогрес у %, <i>S</i> — зібрана сума, <i>T</i> — ціль)
-  </p>
-</div>
 
 <div class="bg-indigo-50 p-4 rounded-lg">
   <h3 class="font-bold">Залишок</h3>
@@ -1122,39 +1113,256 @@ layout: center
 
 # 🎯 Модуль: Мрії та цілі
 
-На що збираємо? Створимо `src/components/modules/SavingsGoal.tsx`.
+На що збираємо? Створимо `src/components/modules/SavingsGoals.jsx`.
 
 <div class="h-[400px] overflow-y-auto">
 
-```tsx
-import { useState } from 'react';
+```jsx
+import { useState, useEffect } from 'react';
+import {
+  getFromStorage,
+  saveToStorage,
+  STORAGE_KEYS,
+} from '../../utils/storage';
+import { calculateRemainingGoal } from '../../utils/utils';
 
-export function SavingsGoal() {
-  const [goal, setGoal] = useState(5000);
-  const [saved, setSaved] = useState(1500);
+export function SavingsGoals() {
+  const [goals, setGoals] = useState(() => getFromStorage(STORAGE_KEYS.GOALS, []));
+
+  // Збереження цілей до localStorage при їх зміні
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.GOALS, goals);
+  }, [goals]);
+
+  // Добавити ціль з даними з GoalForm
+  const onAddGoal = (payload) => {
+    if (!(payload.name || '').trim()) {
+      alert('Введіть назву цілі');
+      return false;
+    }
+    if ((payload.target || 0) <= 0) {
+      alert('Введіть коректну суму цілі');
+      return false;
+    }
+
+    const goal = {
+      id: Date.now().toString(),
+      name: payload.name || '',
+      target: payload.target || 0,
+      saved: 0,
+      currency: payload.currency || 'UAH',
+      createdAt: getDate(),
+    };
+
+    setGoals((prev) => [...prev, goal]);
+    return true;
+  };
+
+  // Додавання збережень до цілі (від GoalList)
+  const handleAddToGoal = (id, amount) => {
+    if (amount > 0) {
+      setGoals(
+        goals.map((goal) =>
+          goal.id === id ? { ...goal, saved: Math.min(goal.saved + amount, goal.target) } : goal
+        )
+      );
+    }
+  };
+
+  // Видалення цілі
+  const handleDeleteGoal = (id) => {
+    if (confirm('Ви впевнені, що хочете видалити цю ціль?')) {
+      setGoals(goals.filter((goal) => goal.id !== id));
+    }
+  };
 
   return (
-    <div className="module-container">
-      <h2>🎯 Моя Ціль: Новий Телефон</h2>
-      <div className="progress-bar" style={{background: '#e5e7eb', height: '20px', borderRadius: '10px'}}>
-        <div style={{
-          width: `${(saved/goal)*100}%`, 
-          background: '#10b981', 
-          height: '100%', 
-          borderRadius: '10px',
-          transition: 'width 0.5s'
-        }}></div>
+    <div className="module-container savings-goal">
+      <h2 className="module-title">🎯 Мої цілі заощаджень</h2>
+
+      {/* Форма додавання нової цілі */}
+      <div className="p-3 border rounded bg-body-tertiary mb-3">
+        <GoalForm onAdd={onAddGoal} />
       </div>
-      <p style={{textAlign: 'center', marginTop: '10px'}}>
-        Зібрано: {saved} / {goal} грн
-      </p>
-      <button 
-        onClick={() => setSaved(saved + 100)}
-        className="btn-primary"
-        style={{marginTop: '10px'}}
-      >
-        + Відкласти 100 грн
-      </button>
+
+      {/* Статистика */}
+      <GoalSummary goals={goals} />
+
+      {/* Список цілей */}
+      {goals.length === 0 ? (
+        <div className="d-flex flex-column align-items-center py-4">
+          <div className="fs-2 mb-2">🎯</div>
+          <p className="text-muted mb-0">Немає цілей. Додайте першу ціль!</p>
+        </div>
+      ) : (
+        <GoalList goals={goals} onAddToGoal={handleAddToGoal} onDelete={handleDeleteGoal} />
+      )}
+    </div>
+  );
+}
+
+function getDate() {
+  return new Date().toISOString().split('T')[0];
+}
+```
+
+</div>
+
+---
+
+# 🎯 Модуль: Мрії та цілі
+
+Створимо компонент `GoalForm`.
+
+<div class="h-[400px] overflow-y-auto">
+
+```jsx
+function GoalForm({ onAdd }) {
+  const [formValue, setFormValue] = useState({ name: '', target: 0, currency: 'UAH' });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const ok = onAdd(formValue);
+    if (ok) setFormValue({ name: '', target: 0, currency: 'UAH' });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="goal-form">
+      <div className="row g-3">
+        <div className="col-md-6">
+          <label className="form-label">Назва цілі</label>
+          <input
+            type="text"
+            value={formValue.name || ''}
+            onChange={(e) => setFormValue({ ...formValue, name: e.target.value })}
+            placeholder="Напр.: Ноутбук, Відпустка..."
+            className="form-control"
+            maxLength={50}
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label className="form-label">Сума</label>
+          <input
+            type="number"
+            min="0"
+            value={formValue.target || ''}
+            onChange={(e) => setFormValue({ ...formValue, target: parseFloat(e.target.value) || 0 })}
+            placeholder="0"
+            className="form-control"
+          />
+        </div>
+      </div>
+
+      <div className="row g-3 mt-1">
+        <div className="col-md-6">
+          <label className="form-label">Валюта</label>
+          <select
+            value={formValue.currency}
+            onChange={(e) => setFormValue({ ...formValue, currency: e.target.value })}
+            className="form-select"
+          >
+            <option value="UAH">UAH (грн)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mt-3">        
+        <button type="submit" className="btn btn-primary w-100">+ Додати нову ціль</button>
+      </div>
+    </form>
+  );
+}
+```
+
+</div>
+---
+
+# 🎯 Модуль: Мрії та цілі
+
+Створимо компоненти `GoalSummary` та `GoalList`.
+
+<div class="h-[400px] overflow-y-auto">
+
+```jsx
+function GoalList({ goals, onAddToGoal, onDelete }) {
+  const [editingId, setEditingId] = useState(null);
+  const [editAmount, setEditAmount] = useState('');
+
+  const getGoalStatus = (goal) =>
+    goal.saved >= goal.target
+      ? { status: 'completed', icon: '✓', label: 'Досягнута!' }
+      : { status: 'active', icon: '⏳', label: 'Активна' };
+
+  return (
+    <div className="goals-list">
+      {goals.map((goal) => {
+        const remaining = calculateRemainingGoal(goal.target, goal.saved);
+        const goalStatus = getGoalStatus(goal);
+
+        return (
+          <div key={goal.id} className={`card mb-3 ${goalStatus.status === 'completed' ? 'border-success' : ''}`}>
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 className="goal-name mb-1">{goal.name}</h5>
+                  <span className={`badge ${goalStatus.status === 'completed' ? 'bg-success' : 'bg-info text-dark'} me-2 p-2 mt-2`}>{goalStatus.icon} {goalStatus.label}</span>
+                </div>
+
+                <button onClick={() => onDelete(goal.id)} className="btn btn-sm btn-outline-danger" title="Видалити">✕</button>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center mt-2">
+                <div>{goal.saved.toFixed(0)} / {goal.target.toFixed(0)} {goal.currency}</div>
+                <div className="text-muted small">Залишилось: {remaining.toFixed(0)} {goal.currency}</div>
+              </div>
+
+              <div className="mt-3">
+                {editingId === goal.id ? (
+                  <div className="d-flex gap-2 w-100">
+                    <input
+                      type="number"
+                      step="100"
+                      min="0"
+                      value={editAmount}
+                      onChange={(e) => setEditAmount(e.target.value)}
+                      placeholder="Сума"
+                      className="form-control flex-grow-1"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        const amount = parseFloat(editAmount);
+                        if (amount > 0) {
+                          onAddToGoal(goal.id, amount);
+                          setEditingId(null);
+                          setEditAmount('');
+                        }
+                      }}
+                      className="btn btn-sm btn-primary"
+                    >
+                      Додати
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditAmount('');
+                      }}
+                      className="btn btn-sm btn-secondary"
+                    >
+                      Скасувати
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setEditingId(goal.id)} className="btn btn-sm btn-primary">+ Додати заощадження</button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1201,68 +1409,144 @@ $$ V_{out} = V_{base} \times R_{out} $$
 
 # 💱 Модуль: Конвертер
 
-Створимо `src/components/modules/Converter.tsx`.
+Створимо `src/components/modules/Converter.jsx`.
 
 <div class="h-[400px] overflow-y-auto">
 
-```tsx
+```jsx
 import { useState, useEffect } from 'react';
+import { convert, formatDate } from '../../utils/utils';
 
-const FALLBACK_RATES = { UAH: 1, USD: 0.025, EUR: 0.023 };
+// Базові курси для завдання (DEFAULT_RATES).
+// Значення: кількість одиниць валюти за 1 UAH (UAH:1).
+const DEFAULT_RATES = {
+  UAH: 1,
+  USD: 0.025,
+  EUR: 0.023,
+  PLN: 0.1,
+  GBP: 0.02,
+};
 
 export function Converter() {
   const [amount, setAmount] = useState(100);
-  const [from, setFrom] = useState('UAH');
-  const [to, setTo] = useState('USD');
-  const [result, setResult] = useState<string | null>(null);
-  const [rates, setRates] = useState(FALLBACK_RATES);
+  const [fromCurrency, setFromCurrency] = useState('UAH');
+  const [toCurrency, setToCurrency] = useState('USD');
+  const [convertedAmount, setConvertedAmount] = useState(null);
+
+  // Використовуємо курси з DEFAULT_RATES
+  const currencies = Object.keys(DEFAULT_RATES);
 
   useEffect(() => {
-    // Тут буде логіка завантаження курсів
-    // Для простоти поки використовуємо FALLBACK_RATES
-  }, []);
-
-  useEffect(() => {
-    if (rates) {
-      const inUAH = amount / rates[from as keyof typeof rates];
-      const final = inUAH * rates[to as keyof typeof rates];
-      setResult(final.toFixed(2));
-    }
-  }, [amount, from, to, rates]);
+    const res = convert(amount, fromCurrency, toCurrency, DEFAULT_RATES);
+    setConvertedAmount(res != null ? res.toFixed(2) : '');
+  }, [amount, fromCurrency, toCurrency]);
 
   return (
-    <div className="module-container">
-      <h2>💱 Конвертер Валют</h2>
-      
-      <div className="form-group">
-        <label>Сума</label>
-        <input 
-          type="number" 
-          value={amount} 
-          onChange={e => setAmount(parseFloat(e.target.value))} 
-          className="input"
-        />
+    <div className="module-container converter">
+      <h2 className="module-title">💱 Конвертер валют</h2>
+
+      <div className="card mb-4 shadow-sm bg-light-subtle border">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="mb-0">📅 Курси валют</h5>
+            <span className="text-muted">{formatDate()}</span>
+          </div>
+
+          <div className="row text-center gx-3 gy-3">
+            {currencies
+              .filter((c) => c !== 'UAH')
+              .map((c) => (
+                <div className="col-6 col-md-3" key={c}>
+                  <div className="h-100">
+                    <div className="fw-semibold mb-1">{c}</div>
+                    <div className="fw-bold">{(1 / DEFAULT_RATES[c]).toFixed(2)} ₴</div>
+                  </div>
+                </div>
+              ))}
+          </div> 
+        </div>
       </div>
 
-      <div className="currency-section">
-        <select value={from} onChange={e => setFrom(e.target.value)} className="select">
-          {Object.keys(rates).map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <span>→</span>
-        <select value={to} onChange={e => setTo(e.target.value)} className="select">
-          {Object.keys(rates).map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+      <div className="card mb-4 border bg-body-tertiary shadow-sm">
+        <div className="card-body">
+          <form className="row g-3">
+            <div className="col-12">
+              <label className="form-label">Сума</label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(parseFloat(e.target.value))}
+                placeholder="Введіть суму"
+                className="form-control"
+              />
+            </div>
+
+            <div className="col-12">
+              <div className="row g-3 align-items-center">
+                <div className="col-12 col-md-5">
+                  <label className="form-label">З валюти</label>
+                  <select
+                    value={fromCurrency}
+                    onChange={(e) => setFromCurrency(e.target.value)}
+                    className="form-select"
+                  >
+                    {currencies.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-2 text-center d-flex align-items-center justify-content-center">
+                  <div className="fs-4 text-muted">→</div>
+                </div>
+
+                <div className="col-12 col-md-5">
+                  <label className="form-label">На валюту</label>
+                  <select
+                    value={toCurrency}
+                    onChange={(e) => setToCurrency(e.target.value)}
+                    className="form-select"
+                  >
+                    {currencies.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
 
-      <div className="result">
-        <h3>{result} {to}</h3>
+      <div className="card mb-4 border shadow-sm bg-primary-subtle">
+        <div className="card-body p-4">
+          <h5>Результат конвертації</h5>
+          <div className="display-4 fw-bold text-primary">{convertedAmount || '...'} {toCurrency}</div>
+          <div className="text-muted small mt-2">{amount} {fromCurrency} = {convertedAmount || '...'} {toCurrency}</div>
+        </div>
       </div>
     </div>
   );
 }
+
 ```
 
 </div>
+
+---
+layout: center
+---
+
+# Базово все вже є ✅ 
+
+
+---
+layout: center
+---
+
+# Залишилось найскладніше, але ми впораємось 💯
+
+
 
 ---
 
@@ -1312,35 +1596,249 @@ $$ R = L - S $$
 
 # 📊 Модуль: Бюджет
 
-Створимо `src/components/modules/BudgetPlanner.tsx`. Це допоможе не витратити все за один день.
+Створимо `src/components/modules/BudgetPlanner.jsx`. Це допоможе не витратити все за один день.
 
 <div class="h-[340px] overflow-y-auto">
 
-```tsx
-import { useState } from 'react';
+```jsx
+import { useState, useEffect } from 'react';
+import {
+  getFromStorage,
+  saveToStorage,
+  STORAGE_KEYS,
+} from '../../utils/storage';
+
+import { CATEGORIES, DEFAULT_LIMITS } from '../../utils/utils';
 
 export function BudgetPlanner() {
-  const [budget, setBudget] = useState(10000);
-  const [spent, setSpent] = useState(0);
+  const [budgets, setBudgets] = useState(() =>
+    getFromStorage(STORAGE_KEYS.BUDGET, DEFAULT_LIMITS)
+  );
+  const [expenses, setExpenses] = useState(() =>
+    getFromStorage(STORAGE_KEYS.EXPENSES, [])
+  );
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editValue, setEditValue] = useState('');
+
+  // Збереження бюджету до localStorage при його зміні
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.BUDGET, budgets);
+  }, [budgets]);
+
+  // Розрахунок витрат по категоріях (за всі періоди)
+  const categorySpending = expenses.reduce((acc, exp) => {
+    acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+    return acc;
+  }, {});
+
+  // Розрахунок статусу для категорії
+  const getCategoryStatus = (category) => {
+    const spent = categorySpending[category] || 0;
+    const limit = budgets[category] || 0;
+    const remaining = Math.max(0, limit - spent);
+
+    return {
+      spent,
+      limit,
+      remaining,
+      isExceeded: spent > limit,
+    };
+  };
+
+  // Редагування ліміту
+  const handleEditStart = (category, value) => {
+    setEditingCategory(category);
+    setEditValue((value || 0).toString());
+  };
+
+  const handleEditSave = (category) => {
+    const newValue = parseFloat(editValue);
+    if (newValue > 0) {
+      setBudgets({ ...budgets, [category]: newValue });
+    }
+    setEditingCategory(null);
+    setEditValue('');
+  };
+
+  const handleEditCancel = () => {
+    setEditingCategory(null);
+    setEditValue('');
+  };
+
+  // Банер / кнопка оновлення витрат
+  const [bannerMessage, setBannerMessage] = useState('');
+  const [isReloading, setIsReloading] = useState(false);
+
+  const reloadExpenses = () => {
+    setIsReloading(true);
+    const loadedExpenses = getFromStorage(STORAGE_KEYS.EXPENSES, []);
+    setExpenses(loadedExpenses);
+    setBannerMessage('Дані витрат оновлено');
+    setTimeout(() => setBannerMessage(''), 3000);
+    setIsReloading(false);
+  };
+
+  // Загальна інформація
+  const totalBudget = Object.values(budgets).reduce((sum, val) => sum + val, 0);
+  const totalSpent = Object.values(categorySpending).reduce((sum, val) => sum + val, 0);
+  const totalRemaining = totalBudget - totalSpent;
 
   return (
-    <div className="module-container">
-      <h2>📉 Планувальник Бюджету</h2>
-      <div className="card">
-        <h3>Мій Бюджет: {budget} грн</h3>
-        <input 
-          type="range" 
-          min="0" 
-          max={budget} 
-          value={spent} 
-          onChange={e => setSpent(parseInt(e.target.value))}
-          style={{width: '100%'}}
-        />
-        <p>Витрачено: {spent} грн ({Math.round(spent/budget*100)}%)</p>
+    <div className="module-container budget-planner">
+      <h2 className="module-title">📊 Мій Бюджет</h2>
+
+      <BudgetBanner
+        isReloading={isReloading}
+        reloadExpenses={reloadExpenses}
+        bannerMessage={bannerMessage}
+      />
+
+      <BudgetOverview
+        totalBudget={totalBudget}
+        totalSpent={totalSpent}
+        totalRemaining={totalRemaining}
+      />
+
+      {/* Категорії */}
+      <div className="budget-categories">
+        <h3 className="categories-title mb-3">Бюджет по категоріях</h3>
+
+        <div className="row g-3">
+          {Object.entries(CATEGORIES).map(([categoryKey, categoryLabel]) => {
+            const status = getCategoryStatus(categoryKey);
+
+            return (
+              <div key={categoryKey} className="col-12">
+                <div className={`card ${status.isExceeded ? 'border-danger' : ''}`}>
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="me-2">{categoryLabel}</div>
+                      </div>
+
+                      <div>
+                        {editingCategory === categoryKey ? (
+                          <div className="d-flex gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="form-control form-control-sm w-auto"
+                              style={{ minWidth: '110px' }}
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleEditSave(categoryKey)}
+                              className="btn btn-sm btn-primary"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={handleEditCancel}
+                              className="btn btn-sm btn-secondary"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="d-flex align-items-center gap-2">
+                            <div className="fw-bold">{budgets[categoryKey]} грн</div>
+                            <button
+                              onClick={() => handleEditStart(categoryKey, budgets[categoryKey])}
+                              className="btn btn-sm btn-outline-secondary"
+                            >
+                              ✎
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-2 d-flex justify-content-between align-items-center">
+                      <div className="small text-muted">Витрачено: <span className={`${status.isExceeded ? 'text-danger' : ''}`}>{status.spent.toFixed(2)} грн</span></div>
+                      <div className={`small ${status.isExceeded ? 'text-danger' : 'text-success'}`}>
+                        {status.isExceeded ? `Перевищено: ${(status.spent - status.limit).toFixed(2)} грн` : `Залишилось: ${status.remaining.toFixed(2)} грн`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
+
+function BudgetBanner({ isReloading, reloadExpenses, bannerMessage }) {
+  return (
+    <div className="alert alert-light d-flex justify-content-between align-items-center">
+      <div className="me-3">Витрати підтягуються з модуля «Мої витрати».</div>
+      <div className="d-flex flex-column align-items-end">
+        <button
+          onClick={reloadExpenses}
+          className="btn btn-outline-secondary btn-sm"
+          disabled={isReloading}
+        >
+          {isReloading ? 'Оновлення...' : 'Оновити витрати'}
+        </button>
+        {bannerMessage && <small className="text-success mt-1">{bannerMessage}</small>}
+      </div>
+    </div>
+  );
+}
+
+function BudgetOverview({ totalBudget, totalSpent, totalRemaining }) {
+  return (
+    <div className="card mb-3">
+      <div className="card-body">
+        <div className="overview-header mb-3">
+          <h3 className="mb-0">Поточні витрати</h3>
+        </div>
+
+        <div className="row g-3">
+          <div className="col-12 col-md-4">
+            <div className="card h-100">
+              <div className="card-body text-center p-3">
+                <div className="text-muted small">Бюджет</div>
+                <div className="h4 fw-bold mt-2">{totalBudget.toFixed(0)} грн</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-md-4">
+            <div className="card h-100">
+              <div className="card-body text-center p-3">
+                <div className="text-muted small">Витрачено</div>
+                <div className="h4 fw-bold text-success mt-2">{totalSpent.toFixed(0)} грн</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-md-4">
+            <div className="card h-100">
+              <div className="card-body text-center p-3">
+                <div className="text-muted small">Залишилось</div>
+                <div className={`h4 fw-bold mt-2 ${totalRemaining >= 0 ? 'text-success' : 'text-danger'}`}>
+                  {totalRemaining.toFixed(0)} грн
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="overall-summary mt-3">
+          <div className="summary-text text-muted">
+            {totalSpent.toFixed(2)} / {totalBudget.toFixed(2)} грн
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 ```
 
 </div>
@@ -1351,41 +1849,48 @@ export function BudgetPlanner() {
 
 # 📱 Збираємо все разом (App.tsx)
 
-У нас є всі деталі, тепер зберемо їх разом у головному файлі `src/App.tsx`.
+У нас є всі деталі, тепер зберемо їх разом у головному файлі `src/App.jsx`.
 
 <div class="h-[400px] overflow-y-auto">
 
-```tsx
-import { useState } from 'react';
-import './App.css';
-import { Navigation } from './components/Navigation';
-import { Converter } from './components/modules/Converter';
-import { ExpenseTracker } from './components/modules/ExpenseTracker';
-import { BudgetPlanner } from './components/modules/BudgetPlanner';
-import { SavingsGoal } from './components/modules/SavingsGoal';
-import { InstallInfo } from './components/modules/InstallInfo';
+```jsx
+import { useState } from "react";
+import "./App.css";
+import { Navigation } from "./components/Navigation";
+import { Converter } from "./components/modules/Converter";
+import { ExpenseTracker } from "./components/modules/ExpenseTracker";
+import { BudgetPlanner } from "./components/modules/BudgetPlanner";
+import { SavingsGoals } from "./components/modules/SavingsGoals";
+// import { InstallInfo } from "./components/modules/InstallInfo";
 
 function App() {
-  const [activeTab, setActiveTab] = useState('expenses');
+  const [activeTab, setActiveTab] = useState("expenses");
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1 className="title">💡 Фінансова Грамотність</h1>
-        
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+    <div className="container-fluid app-viewport">
+      <div className="card app-card border-0 rounded-2 shadow-sm">
+        <div className="card-header text-center bg-transparent border-0">
+          <h1 className="title py-3 fs-3 fw-bold">💡 Фінансова Грамотність</h1>
+        </div>
 
-        <div className="module-wrapper">
-          {activeTab === 'expenses' && <ExpenseTracker />}
-          {activeTab === 'budget' && <BudgetPlanner />}
-          {activeTab === 'goals' && <SavingsGoal />}
-          {activeTab === 'converter' && <Converter />}
+        <div className="card-body p-0">
+          <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+          <div className="module-wrapper">
+            {activeTab === "expenses" && <ExpenseTracker />}
+            {activeTab === "budget" && <BudgetPlanner />}
+            {activeTab === "goals" && <SavingsGoals />}
+            {activeTab === "converter" && <Converter />}
+            {/* {activeTab === "help" && <InstallInfo />}  */}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
 export default App;
+
 ```
 
 </div>
@@ -1394,25 +1899,27 @@ export default App;
 layout: center
 ---
 
-# Майже все готово
+# Майже все готово. Останній крок!
 
 
 ---
 
 # 🚀 Активація PWA
 
-Останній крок! Щоб додаток працював офлайн, треба зареєструвати Service Worker у `src/main.tsx`.
+Останній крок! Щоб додаток працював офлайн, треба зареєструвати Service Worker у `src/main.jsx`.
 
 <div class="h-[400px] overflow-y-auto">
 
-```tsx {all|10-19}
+```jsx {12-23}
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import App from './App.jsx'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode><App /></StrictMode>,
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
 )
 
 // PWA Registration
@@ -1470,7 +1977,7 @@ layout: center
 
 # 🎉 Ти - розробник!
 
-Вітаємо! Ти щойно створив свій власний фінансовий додаток.
+Вітаємо! Ти щойно створив свій власний Веб додаток.
 
 ### 🎮 Як запустити:
 1. `npm run dev` - щоб погратися в браузері.
@@ -1483,3 +1990,23 @@ layout: center
 - Зміни іконки на свої улюблені.
 - Додай нові функції (наприклад, графіки).
 - Покажи друзям і скажи: "Я це зробив!".
+
+---
+layout: center
+---
+
+# Дякую за увагу!
+
+<br>
+
+<div class="text-xl italic font-serif opacity-80">
+"Найкращий спосіб передбачити майбутнє — це створити його."
+</div>
+
+<div class="text-sm mt-2 opacity-60">
+— Авраам Лінкольн
+</div>
+
+<div class="mt-12 text-sm opacity-50">
+Успіхів у кодінгу! 💻✨
+</div>
