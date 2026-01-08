@@ -1287,86 +1287,42 @@ function GoalForm({ onAdd }) {
 <div class="h-[400px] overflow-y-auto">
 
 ```jsx
-function GoalList({ goals, onAddToGoal, onDelete }) {
-  const [editingId, setEditingId] = useState(null);
-  const [editAmount, setEditAmount] = useState('');
 
-  const getGoalStatus = (goal) =>
-    goal.saved >= goal.target
-      ? { status: 'completed', icon: '✓', label: 'Досягнута!' }
-      : { status: 'active', icon: '⏳', label: 'Активна' };
+function GoalSummary({ goals }) {
+  const totalSaved = goals.reduce((sum, g) => sum + g.saved, 0);
+  const completedGoals = goals.filter((g) => g.saved >= g.target).length;
 
   return (
-    <div className="goals-list">
-      {goals.map((goal) => {
-        const remaining = calculateRemainingGoal(goal.target, goal.saved);
-        const goalStatus = getGoalStatus(goal);
-
-        return (
-          <div key={goal.id} className={`card mb-3 ${goalStatus.status === 'completed' ? 'border-success' : ''}`}>
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <h5 className="goal-name mb-1">{goal.name}</h5>
-                  <span className={`badge ${goalStatus.status === 'completed' ? 'bg-success' : 'bg-info text-dark'} me-2 p-2 mt-2`}>{goalStatus.icon} {goalStatus.label}</span>
-                </div>
-
-                <button onClick={() => onDelete(goal.id)} className="btn btn-sm btn-outline-danger" title="Видалити">✕</button>
-              </div>
-
-              <div className="d-flex justify-content-between align-items-center mt-2">
-                <div>{goal.saved.toFixed(0)} / {goal.target.toFixed(0)} {goal.currency}</div>
-                <div className="text-muted small">Залишилось: {remaining.toFixed(0)} {goal.currency}</div>
-              </div>
-
-              <div className="mt-3">
-                {editingId === goal.id ? (
-                  <div className="d-flex gap-2 w-100">
-                    <input
-                      type="number"
-                      step="100"
-                      min="0"
-                      value={editAmount}
-                      onChange={(e) => setEditAmount(e.target.value)}
-                      placeholder="Сума"
-                      className="form-control flex-grow-1"
-                      autoFocus
-                    />
-                    <button
-                      onClick={() => {
-                        const amount = parseFloat(editAmount);
-                        if (amount > 0) {
-                          onAddToGoal(goal.id, amount);
-                          setEditingId(null);
-                          setEditAmount('');
-                        }
-                      }}
-                      className="btn btn-sm btn-primary"
-                    >
-                      Додати
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditAmount('');
-                      }}
-                      className="btn btn-sm btn-secondary"
-                    >
-                      Скасувати
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setEditingId(goal.id)} className="btn btn-sm btn-primary">+ Додати заощадження</button>
-                )}
-              </div>
-            </div>
+    <div className="row g-3 mb-4">
+      <div className="col-12 col-md-4">
+        <div className="card h-100">
+          <div className="card-body text-center p-3">
+            <div className="text-muted small">Активних цілей</div>
+            <div className="h4 fw-bold mt-2">{goals.filter((g) => g.saved < g.target).length}</div>
           </div>
-        );
-      })}
+        </div>
+      </div>
+
+      <div className="col-12 col-md-4">
+        <div className="card h-100">
+          <div className="card-body text-center p-3">
+            <div className="text-muted small">Досягнутих</div>
+            <div className="h4 fw-bold text-success mt-2">{completedGoals}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-12 col-md-4">
+        <div className="card h-100">
+          <div className="card-body text-center p-3">
+            <div className="text-muted small">Усього заощаджено</div>
+            <div className="h4 fw-bold text-success mt-2">{totalSaved.toFixed(0)} грн</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
-
 
 ```
 
@@ -1381,8 +1337,6 @@ function GoalList({ goals, onAddToGoal, onDelete }) {
 <div class="h-[400px] overflow-y-auto">
 
 ```jsx
-
-
 function GoalList({ goals, onAddToGoal, onDelete }) {
   const [editingId, setEditingId] = useState(null);
   const [editAmount, setEditAmount] = useState('');
